@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beamline - a light routing puzzle</title>
+<meta name="description" content="A twelve-level grid puzzle about routing coloured light with mirrors, splitters and filters. Playable with a keyboard, no account, no tracking.">
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+<a class="skip-link" href="#board">Skip to the board</a>
+
+<div class="wrap">
+  <header>
+    <h1>Beamline</h1>
+    <p>Route light from the lamps to the targets. Each target wants one exact colour, and you have a fixed number of pieces. Red and green arriving together make yellow.</p>
+  </header>
+
+  <main class="game">
+    <div class="stage">
+      <div class="board" id="board" role="grid"
+           aria-label="Puzzle board. Use the arrow keys to move between cells and Enter to place a piece."></div>
+      <canvas class="beams" id="beams" aria-hidden="true"></canvas>
+    </div>
+
+    <div class="panel">
+      <section aria-labelledby="h-level">
+        <h2 id="h-level">Level <span id="level-number">1 of 12</span></h2>
+        <p id="level-name">Straight through</p>
+        <p id="level-hint" style="margin-top:.4rem;"></p>
+        <p id="budget" style="margin-top:.6rem;">0 of 0 placed</p>
+      </section>
+
+      <section aria-labelledby="h-controls">
+        <h2 id="h-controls">Controls</h2>
+        <div class="controls">
+          <button class="btn" type="button" id="prev">Previous</button>
+          <button class="btn btn--primary" type="button" id="next">Next</button>
+          <button class="btn" type="button" id="reset">Clear board</button>
+          <button class="btn" type="button" id="solve">Show solution</button>
+        </div>
+        <p style="margin-top:.7rem; font-size:.84rem;">Keyboard: arrow keys to move, Enter to cycle a cell, R to clear, N and P to change level.</p>
+      </section>
+
+      <section aria-labelledby="h-levels">
+        <h2 id="h-levels">Levels</h2>
+        <div class="picker" id="picker"></div>
+      </section>
+
+      <section aria-labelledby="h-legend">
+        <h2 id="h-legend">Pieces</h2>
+        <div class="legend">
+          <div><b>/</b><span>Mirror. Turns a beam ninety degrees.</span></div>
+          <div><b>\</b><span>The other mirror, turning the other way.</span></div>
+          <div><b>S</b><span>Splitter. Passes light on and sends a copy clockwise.</span></div>
+        </div>
+        <p style="margin-top:.7rem; font-size:.84rem;">Click or press Enter on an empty cell to cycle through the three, then once more to clear it.</p>
+      </section>
+    </div>
+  </main>
+
+  <p class="visually-hidden" id="status" role="status" aria-live="polite"></p>
+
+  <footer>
+    <p>No account, no cookies, no analytics. Progress is stored in this browser only and never leaves it.
+       Source and the level format are on <a href="https://github.com/gplonisch/beamline">GitHub</a>.</p>
+  </footer>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

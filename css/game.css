@@ -1,0 +1,202 @@
+/* Beamline.
+ *
+ * The page chrome follows the visitor's light or dark preference. The board
+ * itself is always dark, the way a photograph stays a photograph in either
+ * theme: it is a physical object in the fiction, an optics table, and coloured
+ * light only reads against a dark ground.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --bg:       #f7f6f3;
+  --panel:    #ffffff;
+  --line:     #e2dfd8;
+  --control:  #857f70;
+  --ink:      #15171c;
+  --ink-2:    #474c57;
+  --ink-3:    #676d7a;
+  --accent:   #1b45c4;
+  --accent-ink: #ffffff;
+
+  /* Board tokens do not change with the theme. */
+  --board:      #0d1117;
+  --board-line: #222a35;
+  --board-cell: #151b24;
+  --board-ink:  #c9d3e0;
+
+  --radius: 10px;
+  --pill: 999px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:      #0f1115;
+    --panel:   #171a20;
+    --line:    #2a2f38;
+    --control: #6a7180;
+    --ink:     #f2f1ee;
+    --ink-2:   #bcc0c8;
+    --ink-3:   #949aa5;
+    --accent:  #8aa9ff;
+    --accent-ink: #0b0e14;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.55 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.skip-link {
+  position: absolute; left: 1rem; top: 1rem; z-index: 50;
+  padding: .6rem 1.1rem; border-radius: var(--pill);
+  background: var(--accent); color: var(--accent-ink);
+  font-weight: 600; text-decoration: none;
+  transform: translateY(-250%);
+}
+.skip-link:focus { transform: translateY(0); }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+.wrap { max-width: 1040px; margin-inline: auto; padding-block: 2.5rem 3.5rem; padding-inline: 1.25rem; }
+
+header h1 { margin: 0 0 .35rem; font-size: 1.6rem; letter-spacing: -0.02em; }
+header p { margin: 0; color: var(--ink-2); max-width: 62ch; }
+
+/* ---- layout ---------------------------------------------------------- */
+.game { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 1.75rem; margin-top: 2rem; align-items: start; }
+@media (max-width: 860px) { .game { grid-template-columns: 1fr; } }
+
+.stage { position: relative; }
+
+/* ---- board ----------------------------------------------------------- */
+.board {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-template-rows: repeat(var(--rows), 1fr);
+  gap: 3px;
+  padding: 3px;
+  background: var(--board-line);
+  border: 1px solid var(--board-line);
+  border-radius: var(--radius);
+  aspect-ratio: var(--cols) / var(--rows);
+  width: 100%;
+}
+.beams {
+  position: absolute; inset: 3px;
+  pointer-events: none;
+  border-radius: var(--radius);
+}
+
+.cell {
+  background: var(--board-cell);
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font: inherit;
+  font-size: clamp(.7rem, 2.2vw, 1.25rem);
+  font-weight: 700;
+  color: var(--board-ink);
+  aspect-ratio: 1;
+  min-width: 0;
+  border-radius: 2px;
+}
+button.cell { cursor: pointer; }
+button.cell:hover { background: #1d2532; }
+
+.cell--wall { background: #2d3644; }
+.cell--piece { color: #f2f6fb; }
+.cell--piece.is-placed { background: #1f2a3a; color: var(--accent); }
+
+.cell--emitter { background: color-mix(in srgb, var(--cell-color) 26%, var(--board-cell)); position: relative; }
+.cell--emitter::after {
+  content: "";
+  width: 42%; height: 42%;
+  border-radius: 50%;
+  background: var(--cell-color);
+}
+.cell--filter {
+  background: color-mix(in srgb, var(--cell-color) 18%, var(--board-cell));
+  border: 2px dashed color-mix(in srgb, var(--cell-color) 70%, transparent);
+}
+.cell--target {
+  background: var(--board-cell);
+  border: 2px solid color-mix(in srgb, var(--cell-color) 65%, transparent);
+  position: relative;
+}
+.cell--target::after {
+  content: "";
+  width: 44%; height: 44%;
+  border: 2px solid var(--cell-color);
+  border-radius: 50%;
+}
+/* Lit state is a filled ring plus the word "Complete" in the label, never
+   colour alone. */
+.cell--target.is-lit::after { background: var(--cell-color); }
+.cell--target.is-lit { border-color: var(--cell-color); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .cell--target.is-lit::after { transition: background-color 180ms ease; }
+}
+
+/* ---- panel ------------------------------------------------------------ */
+.panel { display: grid; gap: 1.25rem; }
+.panel section { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem; }
+.panel h2 { margin: 0 0 .5rem; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); }
+.panel p { margin: 0; color: var(--ink-2); font-size: .92rem; }
+
+#level-name { font-size: 1.15rem; font-weight: 640; color: var(--ink); letter-spacing: -0.01em; }
+#level-number { color: var(--ink-3); font-size: .85rem; }
+#budget { font-variant-numeric: tabular-nums; font-weight: 580; color: var(--ink); }
+#budget.is-full { color: var(--accent); }
+
+.controls { display: flex; flex-wrap: wrap; gap: .5rem; }
+.btn {
+  font: inherit; font-size: .9rem; font-weight: 560;
+  padding: .5rem 1rem;
+  border-radius: var(--pill);
+  border: 1px solid var(--control);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.btn:hover:not(:disabled) { background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn--primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn--primary:hover:not(:disabled) { background: var(--accent); filter: brightness(1.08); }
+
+.picker { display: flex; flex-wrap: wrap; gap: .35rem; }
+.chip {
+  font: inherit; font-size: .82rem; font-variant-numeric: tabular-nums;
+  width: 2.1rem; height: 2.1rem;
+  border-radius: var(--pill);
+  border: 1px solid var(--control);
+  background: transparent; color: var(--ink-2);
+  cursor: pointer;
+}
+.chip:hover { color: var(--ink); }
+/* Solved and current are distinguished by weight and border, not colour alone. */
+.chip.is-done { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+.chip.is-current { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.legend { display: grid; gap: .45rem; font-size: .86rem; color: var(--ink-2); }
+.legend div { display: flex; gap: .55rem; align-items: baseline; }
+.legend b { color: var(--ink); font-weight: 620; min-width: 1.6rem; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--line); color: var(--ink-3); font-size: .86rem; }
+footer a { color: var(--ink-2); }
