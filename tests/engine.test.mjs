@@ -5,7 +5,8 @@ import {
   B, DOWN, G, LEFT, MIRROR_B, MIRROR_F, R, RIGHT, SPLITTER, UP, WHITE,
   applySolution, createLevel, cycle, isPlaceable, place, simulate,
 } from "../js/engine.js";
-import { LEVELS } from "../js/levels.js";
+import { CHAPTERS, LEVELS } from "../js/levels.js";
+import { countSolutions, solve, solveBruteForce } from "../scripts/solver.mjs";
 
 const build = (grid, extra = {}) =>
   createLevel({ id: 0, name: "test", grid, budget: 9, ...extra });
@@ -121,6 +122,35 @@ describe("colour", () => {
   });
 });
 
+describe("dark sensors", () => {
+  it("are satisfied while no light reaches them", () => {
+    const level = build(["E...T", ".....", "....T"], {
+      emitters: [{ x: 0, y: 0, dir: RIGHT, color: WHITE }],
+      targets: [{ x: 4, y: 0, want: 0 }, { x: 4, y: 2, want: WHITE }],
+    });
+    assert.equal(simulate(level).targets[0].lit, false, "light is hitting the dark sensor");
+    place(level, 2, 0, MIRROR_B);
+    place(level, 2, 2, MIRROR_B);
+    const out = simulate(level);
+    assert.equal(out.targets[0].lit, true);
+    assert.equal(out.solved, true);
+  });
+});
+
+describe("settled colour (used by the solver to prune)", () => {
+  it("light that crossed no open cell is settled; light that did is not", () => {
+    const level = build(["E...T"], {
+      emitters: [{ x: 0, y: 0, dir: RIGHT, color: R }],
+      targets: [{ x: 4, y: 0, want: G }],
+    });
+    const closed = simulate(level).targets[0];
+    assert.equal(closed.settled, R, "no open cells: the red is permanent");
+    const open = simulate(level, { undecided: (x) => x === 2 }).targets[0];
+    assert.equal(open.got, R);
+    assert.equal(open.settled, 0, "a choice at x=2 could still divert it");
+  });
+});
+
 describe("termination", () => {
   it("a mirror loop terminates instead of hanging", () => {
     // Four mirrors in a ring send the beam around forever unless the visited
@@ -171,9 +201,18 @@ describe("placement rules", () => {
 });
 
 describe("shipped levels", () => {
-  it("there are twelve of them, numbered in order", () => {
-    assert.equal(LEVELS.length, 12);
-    assert.deepEqual(LEVELS.map((l) => l.id), [...Array(12)].map((_, i) => i + 1));
+  it("there are twenty of them, numbered in order", () => {
+    assert.equal(LEVELS.length, 20);
+    assert.deepEqual(LEVELS.map((l) => l.id), [...Array(20)].map((_, i) => i + 1));
+  });
+
+  it("the chapters cover every level exactly once", () => {
+    const covered = CHAPTERS.flatMap((c) => [...Array(c.last - c.first + 1)].map((_, i) => c.first + i));
+    assert.deepEqual(covered, LEVELS.map((l) => l.id));
+  });
+
+  it("every level has a hint", () => {
+    for (const def of LEVELS) assert.ok(def.hint && def.hint.length > 10, `level ${def.id}`);
   });
 
   for (const def of LEVELS) {
@@ -195,7 +234,7 @@ describe("shipped levels", () => {
 
     it(`level ${def.id} is not already solved before the player acts`, () => {
       const level = createLevel(def);
-      if (def.budget === 0) return; // level 1 is the tutorial
+      if (def.id === 1) return; // level 1 is the tutorial and starts solved
       assert.equal(simulate(level).solved, false, "level starts already solved");
     });
 
@@ -205,4 +244,40 @@ describe("shipped levels", () => {
       assert.ok(simulate(level).targets.length > 0);
     });
   }
+});
+
+describe("solver", () => {
+  // The fast solver only searches cells light reaches. The brute-force one
+  // searches every cell. If the argument in solver.mjs is right they must
+  // agree on the minimum for every level small enough to brute-force.
+  for (const def of LEVELS.filter((l) => l.budget <= 3)) {
+    it(`agrees with brute force on level ${def.id}`, () => {
+      const a = solve(createLevel(def));
+      const b = solveBruteForce(createLevel(def));
+      assert.ok(a && b);
+      assert.equal(a.length, b.length);
+      assert.equal(applySolution(createLevel(def), a).solved, true);
+    });
+  }
+
+  it("proves a level impossible rather than giving up", () => {
+    const level = build(["E#..T"], {
+      emitters: [{ x: 0, y: 0, dir: RIGHT, color: WHITE }],
+      targets: [{ x: 4, y: 0, want: WHITE }],
+    });
+    assert.equal(solve(level, { maxPieces: 3 }), null);
+  });
+
+  it("counts distinct solutions, not orderings of the same one", () => {
+    const def = LEVELS.find((l) => l.name === "Mixing yellow");
+    assert.equal(countSolutions(createLevel(def), def.budget), 2);
+  });
+
+  it("leaves the level as it found it", () => {
+    const def = LEVELS.find((l) => l.name === "First turn");
+    const level = createLevel(def);
+    place(level, 3, 1, MIRROR_F);
+    solve(level);
+    assert.deepEqual([...level.placed], [["3,1", MIRROR_F]]);
+  });
 });

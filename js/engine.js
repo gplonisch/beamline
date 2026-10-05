@@ -28,6 +28,11 @@ export const COLOR_NAMES = {
   4: "blue", 5: "magenta", 6: "cyan", 7: "white",
 };
 
+/** One-letter codes, so colour is never the only way to read the board. */
+export const COLOR_CODES = {
+  0: "-", 1: "R", 2: "G", 3: "Y", 4: "B", 5: "M", 6: "C", 7: "W",
+};
+
 export const EMPTY = ".";
 export const WALL = "#";
 export const MIRROR_F = "/";   // reflects right->up
@@ -136,19 +141,28 @@ export function cycle(level, x, y) {
  * (x, y, direction, colour), of which there are at most width * height * 4 * 8
  * states, so a loop revisits a state and stops. Without that a mirror ring
  * would spin forever, which is the one way a grid light puzzle can hang.
+ *
+ * `undecided` is for the solver and the game never passes it. It names cells
+ * whose contents are still open in a search. A beam that has crossed one is
+ * provisional, and colour that reaches a target without crossing one is
+ * reported as `settled`: no later choice can take it away, so a target whose
+ * settled colour already includes something it does not want is a dead end.
  */
-export function simulate(level) {
+export function simulate(level, { undecided = null } = {}) {
+  const { width, height } = level;
   const segments = [];
-  const visited = new Set();
-  const arriving = new Map(); // "x,y" -> accumulated colour bitmask
+  // Flat arrays rather than string-keyed sets: the solver calls this hundreds
+  // of thousands of times, and it is the whole cost of a search.
+  const visited = new Uint8Array(width * height * 4 * 8);
+  const arriving = new Uint8Array(width * height); // colour reaching each cell
+  const settled = new Uint8Array(width * height);  // colour no open cell can change
 
   const queue = [];
   for (const row of level.cells) {
     for (const cell of row) {
       if (cell.type === EMITTER) {
-        queue.push({ x: cell.x, y: cell.y, dir: cell.dir, color: cell.color });
+        queue.push({ x: cell.x, y: cell.y, dir: cell.dir, color: cell.color, open: false });
       }
-      if (cell.type === TARGET) arriving.set(key(cell.x, cell.y), 0);
     }
   }
 
@@ -156,9 +170,9 @@ export function simulate(level) {
     const beam = queue.pop();
     if (beam.color === 0) continue;
 
-    const state = `${beam.x},${beam.y},${beam.dir},${beam.color}`;
-    if (visited.has(state)) continue;
-    visited.add(state);
+    const state = ((beam.y * width + beam.x) * 4 + beam.dir) * 8 + beam.color;
+    if (visited[state]) continue;
+    visited[state] = 1;
 
     const { dx, dy } = DIRS[beam.dir];
     const nx = beam.x + dx;
@@ -167,39 +181,41 @@ export function simulate(level) {
     if (!next) continue; // off the board
 
     segments.push({ x1: beam.x, y1: beam.y, x2: nx, y2: ny, color: beam.color });
+    const open = beam.open || (undecided !== null && undecided(nx, ny));
 
     switch (next.type) {
       case WALL:
         break;
 
       case TARGET: {
-        const k = key(nx, ny);
-        arriving.set(k, (arriving.get(k) ?? 0) | beam.color);
+        const i = ny * width + nx;
+        arriving[i] |= beam.color;
+        if (!open) settled[i] |= beam.color;
         break; // targets absorb
       }
 
       case MIRROR_F:
-        queue.push({ x: nx, y: ny, dir: REFLECT_F[beam.dir], color: beam.color });
+        queue.push({ x: nx, y: ny, dir: REFLECT_F[beam.dir], color: beam.color, open });
         break;
 
       case MIRROR_B:
-        queue.push({ x: nx, y: ny, dir: REFLECT_B[beam.dir], color: beam.color });
+        queue.push({ x: nx, y: ny, dir: REFLECT_B[beam.dir], color: beam.color, open });
         break;
 
       case SPLITTER:
-        queue.push({ x: nx, y: ny, dir: beam.dir, color: beam.color });
-        queue.push({ x: nx, y: ny, dir: (beam.dir + 1) % 4, color: beam.color });
+        queue.push({ x: nx, y: ny, dir: beam.dir, color: beam.color, open });
+        queue.push({ x: nx, y: ny, dir: (beam.dir + 1) % 4, color: beam.color, open });
         break;
 
       case FILTER:
-        queue.push({ x: nx, y: ny, dir: beam.dir, color: beam.color & next.color });
+        queue.push({ x: nx, y: ny, dir: beam.dir, color: beam.color & next.color, open });
         break;
 
       case EMITTER:
         break; // an emitter blocks light rather than re-emitting it
 
       default:
-        queue.push({ x: nx, y: ny, dir: beam.dir, color: beam.color });
+        queue.push({ x: nx, y: ny, dir: beam.dir, color: beam.color, open });
     }
   }
 
@@ -207,8 +223,9 @@ export function simulate(level) {
   for (const row of level.cells) {
     for (const cell of row) {
       if (cell.type !== TARGET) continue;
-      const got = arriving.get(key(cell.x, cell.y)) ?? 0;
-      targets.push({ x: cell.x, y: cell.y, want: cell.want, got, lit: got === cell.want });
+      const got = arriving[cell.y * width + cell.x];
+      const fixed = settled[cell.y * width + cell.x];
+      targets.push({ x: cell.x, y: cell.y, want: cell.want, got, settled: fixed, lit: got === cell.want });
     }
   }
 

@@ -1,37 +1,43 @@
 /**
- * Authoring tool: find a minimal solution for every level.
+ * Authoring tool and CI check: prove every level is solvable within its budget
+ * and that the budget is exactly the minimum.
  *
  *   node scripts/solve.mjs
  *
- * Exhaustive over placements, so a "no solution" result is proof rather than a
- * failure to find one. It is not run in CI: the search is exponential in the
- * budget and is already slow at five pieces. CI verifies the stored solutions
- * instead, which is instant and catches the thing that actually matters, an
- * engine change that breaks a shipped level.
+ * The search is exhaustive (see solver.mjs for why), so "no solution" is proof
+ * a level cannot be finished, and "minimum 4" is proof there is no way to do it
+ * in 3.
  */
 
 import { createLevel } from "../js/engine.js";
 import { LEVELS } from "../js/levels.js";
-import { solve } from "./solver.mjs";
+import { countSolutions, solve } from "./solver.mjs";
 
-let solved = 0;
+let ok = 0;
+const total = Date.now();
 for (const def of LEVELS) {
   const level = createLevel(def);
   const started = Date.now();
   const found = solve(level);
   const ms = Date.now() - started;
-  if (found) {
-    solved++;
-    console.log(
-      `level ${String(def.id).padStart(2)}  ${def.name.padEnd(18)} ` +
-      `minimum ${found.length} piece(s), budget ${def.budget}  (${ms}ms)`
-    );
-    if (found.length !== def.budget) {
-      console.log(`         budget has ${def.budget - found.length} piece(s) of slack`);
-    }
-  } else {
-    console.log(`level ${String(def.id).padStart(2)}  ${def.name.padEnd(18)} NO SOLUTION (${ms}ms)`);
+  const tag = `level ${String(def.id).padStart(2)}  ${def.name.padEnd(20)}`;
+
+  if (!found) {
+    console.log(`${tag} NO SOLUTION within budget ${def.budget} (${ms}ms)`);
+    continue;
   }
+  const ways = countSolutions(level, found.length, 50);
+  console.log(
+    `${tag} minimum ${found.length}, budget ${def.budget}, ` +
+    `${ways >= 50 ? "50+" : ways} solution(s) at minimum  (${ms}ms)`
+  );
+  if (found.length !== def.budget) {
+    console.log(`         budget has ${def.budget - found.length} piece(s) of slack`);
+    if (process.argv.includes("--print")) console.log("         " + JSON.stringify(found));
+    continue;
+  }
+  if (process.argv.includes("--print")) console.log("         " + JSON.stringify(found));
+  ok++;
 }
-console.log(`\n${solved}/${LEVELS.length} solvable within budget`);
-process.exit(solved === LEVELS.length ? 0 : 1);
+console.log(`\n${ok}/${LEVELS.length} solvable with an exact budget  (${Date.now() - total}ms)`);
+process.exit(ok === LEVELS.length ? 0 : 1);

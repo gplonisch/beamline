@@ -3,58 +3,90 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Beamline - a light routing puzzle</title>
-<meta name="description" content="A twelve-level grid puzzle about routing coloured light with mirrors, splitters and filters. Playable with a keyboard, no account, no tracking.">
+<title>Beamline</title>
+<meta name="description" content="A puzzle about routing coloured light with mirrors, splitters and filters. Twenty levels, playable with a keyboard, no account, no tracking.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0b0f15">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/fraunces-opsz.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/game.css">
+<script>document.documentElement.classList.add("js");</script>
 </head>
 <body>
 <a class="skip-link" href="#board">Skip to the board</a>
 
 <div class="wrap">
-  <header>
+  <header class="masthead">
+    <p class="eyebrow">A light routing puzzle</p>
     <h1>Beamline</h1>
-    <p>Route light from the lamps to the targets. Each target wants one exact colour, and you have a fixed number of pieces. Red and green arriving together make yellow.</p>
+    <p class="lede">Route light from the lamps to the sensors. Each sensor wants one exact colour, and you get a fixed number of pieces. Light adds the way real light does, so red and green arriving together make yellow.</p>
   </header>
 
   <main class="game">
-    <div class="stage">
-      <div class="board" id="board" role="grid"
-           aria-label="Puzzle board. Use the arrow keys to move between cells and Enter to place a piece."></div>
-      <canvas class="beams" id="beams" aria-hidden="true"></canvas>
+    <div class="stage-col">
+      <div class="stage" id="stage">
+        <div class="board" id="board" role="grid" aria-describedby="board-help"></div>
+        <canvas class="beams" id="beams" aria-hidden="true"></canvas>
+      </div>
+      <div class="result" id="result" hidden role="dialog" aria-modal="false" aria-labelledby="result-title">
+        <p class="result__kicker" id="result-kicker">Level solved</p>
+        <h2 class="result__title" id="result-title">Solved</h2>
+        <p class="result__body" id="result-body"></p>
+        <div class="result__actions">
+          <button class="btn btn--primary" type="button" id="result-next">Next level</button>
+          <button class="btn" type="button" id="result-stay">Stay here</button>
+        </div>
+      </div>
+      <p class="board-help" id="board-help">Click a cell to place a mirror, again to turn it, again for a splitter, and once more to clear it. Right-click removes a piece.</p>
     </div>
 
     <div class="panel">
-      <section aria-labelledby="h-level">
-        <h2 id="h-level">Level <span id="level-number">1 of 12</span></h2>
-        <p id="level-name">Straight through</p>
-        <p id="level-hint" style="margin-top:.4rem;"></p>
-        <p id="budget" style="margin-top:.6rem;">0 of 0 placed</p>
+      <section class="card card--level" aria-labelledby="level-name">
+        <p class="card__kicker" id="level-number">Level 1 of 20</p>
+        <h2 class="level-name" id="level-name">Straight through</h2>
+        <p class="level-hint" id="level-hint"></p>
+        <div class="budget" id="budget-wrap">
+          <span class="budget__pips" id="budget-pips" aria-hidden="true"></span>
+          <span class="budget__text" id="budget">0 of 0 placed</span>
+        </div>
       </section>
 
-      <section aria-labelledby="h-controls">
-        <h2 id="h-controls">Controls</h2>
+      <section class="card" aria-labelledby="h-controls">
+        <h2 class="card__kicker" id="h-controls">Controls</h2>
         <div class="controls">
-          <button class="btn" type="button" id="prev">Previous</button>
-          <button class="btn btn--primary" type="button" id="next">Next</button>
-          <button class="btn" type="button" id="reset">Clear board</button>
+          <button class="btn" type="button" id="undo" aria-keyshortcuts="Z">Undo</button>
+          <button class="btn" type="button" id="reset" aria-keyshortcuts="R">Clear board</button>
           <button class="btn" type="button" id="solve">Show solution</button>
+          <button class="btn" type="button" id="fullscreen" hidden>Fullscreen</button>
+          <button class="btn" type="button" id="codes" aria-pressed="true">Colour codes on</button>
         </div>
-        <p style="margin-top:.7rem; font-size:.84rem;">Keyboard: arrow keys to move, Enter to cycle a cell, R to clear, N and P to change level.</p>
+        <div class="controls controls--nav">
+          <button class="btn" type="button" id="prev" aria-keyshortcuts="P">Previous</button>
+          <button class="btn btn--primary" type="button" id="next" aria-keyshortcuts="N">Next</button>
+        </div>
+        <details class="keys">
+          <summary>Keyboard</summary>
+          <dl>
+            <div><dt>Arrows</dt><dd>Move between cells</dd></div>
+            <div><dt>Enter</dt><dd>Cycle the piece in a cell</dd></div>
+            <div><dt>1 2 3</dt><dd>Place <span aria-label="forward mirror">/</span>, <span aria-label="back mirror">\</span> or splitter</dd></div>
+            <div><dt>Delete</dt><dd>Remove a piece</dd></div>
+            <div><dt>Z</dt><dd>Undo</dd></div>
+            <div><dt>R</dt><dd>Clear the board</dd></div>
+            <div><dt>N, P</dt><dd>Next or previous level</dd></div>
+          </dl>
+        </details>
       </section>
 
-      <section aria-labelledby="h-levels">
-        <h2 id="h-levels">Levels</h2>
-        <div class="picker" id="picker"></div>
+      <section class="card" aria-labelledby="h-levels">
+        <h2 class="card__kicker" id="h-levels">Levels</h2>
+        <div id="picker"></div>
+        <p class="picker-key"><span class="key-done" aria-hidden="true"></span> solved <span class="key-seen" aria-hidden="true"></span> solution shown</p>
       </section>
 
-      <section aria-labelledby="h-legend">
-        <h2 id="h-legend">Pieces</h2>
-        <div class="legend">
-          <div><b>/</b><span>Mirror. Turns a beam ninety degrees.</span></div>
-          <div><b>\</b><span>The other mirror, turning the other way.</span></div>
-          <div><b>S</b><span>Splitter. Passes light on and sends a copy clockwise.</span></div>
-        </div>
-        <p style="margin-top:.7rem; font-size:.84rem;">Click or press Enter on an empty cell to cycle through the three, then once more to clear it.</p>
+      <section class="card" aria-labelledby="h-legend">
+        <h2 class="card__kicker" id="h-legend">Pieces</h2>
+        <ul class="legend" id="legend"></ul>
       </section>
     </div>
   </main>
@@ -62,11 +94,12 @@
   <p class="visually-hidden" id="status" role="status" aria-live="polite"></p>
 
   <footer>
-    <p>No account, no cookies, no analytics. Progress is stored in this browser only and never leaves it.
-       Source and the level format are on <a href="https://github.com/gplonisch/beamline">GitHub</a>.</p>
+    <p>No account, no cookies, no analytics, and no requests to anyone else's servers. Your progress is saved in this browser only and never leaves it. <button class="linkish" type="button" id="forget">Forget my progress</button></p>
+    <p>Made by Gracie Plonisch. Source, tests and the level solver are on <a href="https://github.com/gplonisch/beamline">GitHub</a>. Type is Fraunces, under the SIL Open Font License.</p>
   </footer>
 </div>
 
+<noscript><p class="noscript">Beamline needs JavaScript to run. There is nothing else on this page that does.</p></noscript>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>

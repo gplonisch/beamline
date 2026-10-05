@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  engine:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -15,16 +15,29 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Engine tests and level verification
+      - name: Engine, level and solver tests
         run: node --test tests/*.test.mjs
 
-      # Proof rather than assertion: the solver is exhaustive, so this failing
-      # means a level genuinely cannot be completed within its budget.
-      - name: Exhaustive solvability check
+      # Proof rather than assertion: the solver is exhaustive, so this passing
+      # means every level can be finished, and in no fewer pieces than its budget.
+      - name: Exhaustive solvability and exact budgets
         run: node scripts/solve.mjs
 
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # Reads canvas pixels to check light lands where the engine says it does.
+      - name: Browser tests
+        run: npx playwright test
+
   deploy:
-    needs: test
+    needs: [engine, browser]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -35,9 +48,13 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v5
+      - name: Keep only the files the game serves
+        run: |
+          mkdir _site
+          cp -r index.html favicon.svg css js fonts LICENSE _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
