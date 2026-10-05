@@ -443,7 +443,7 @@ function drawCode(ctx, g, letter) {
   roundRect(ctx, bx, by, size * 1.05, size * 1.05, size * 0.22);
   ctx.fill();
   ctx.fillStyle = "#f3f1ec";
-  ctx.font = `600 ${Math.round(size * 0.78)}px Fraunces, Georgia, serif`;
+  ctx.font = `700 ${Math.round(size * 0.78)}px "Libre Caslon Text", Georgia, serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(letter, bx + size * 0.525, by + size * 0.57);

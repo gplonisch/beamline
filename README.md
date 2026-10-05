@@ -220,5 +220,5 @@ the solution in. The tests then hold you to it.
 
 ## License
 
-Code is MIT. The Fraunces typeface in `fonts/` is under the SIL Open Font
-License, included as `fonts/OFL.txt`.
+Code is MIT. The Libre Caslon Text and Libre Caslon Display typefaces in
+`fonts/` are under the SIL Open Font License, included alongside them.

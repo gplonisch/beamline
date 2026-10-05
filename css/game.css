@@ -5,39 +5,45 @@
  * an optics table in the fiction, and coloured light only reads against a dark
  * ground.
  *
- * Type is Fraunces, self-hosted under the OFL. No font or script is fetched
+ * Type is Libre Caslon, self-hosted under the OFL. No font or script is fetched
  * from anyone else's server.
  */
 
 @font-face {
-  font-family: "Fraunces";
-  src: url("../fonts/fraunces-opsz.woff2") format("woff2");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
+  font-family: "Libre Caslon Text";
+  src: url("../fonts/caslon-text-400.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
 }
 @font-face {
-  font-family: "Fraunces";
-  src: url("../fonts/fraunces-opsz-italic.woff2") format("woff2");
-  font-weight: 100 900;
-  font-style: italic;
-  font-display: swap;
+  font-family: "Libre Caslon Text";
+  src: url("../fonts/caslon-text-400-italic.woff2") format("woff2");
+  font-weight: 400; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: "Libre Caslon Text";
+  src: url("../fonts/caslon-text-700.woff2") format("woff2");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Libre Caslon Display";
+  src: url("../fonts/caslon-display-400.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
 }
 
 :root {
   color-scheme: light dark;
 
-  --bg:        #f4f1ea;
-  --bg-2:      #ebe6db;
-  --panel:     #fbf9f4;
-  --line:      #ddd6c8;
-  --control:   #8a8172;
-  --ink:       #1b1a17;
-  --ink-2:     #47433b;
-  --ink-3:     #6b6558;
-  --accent:    #2747b8;
+  --bg:        #e6ebf2;
+  --bg-2:      #d6dfea;
+  --panel:     #f5f8fc;
+  --line:      #c9d3e0;
+  --control:   #68768b;
+  --ink:       #0f1522;
+  --ink-2:     #334055;
+  --ink-3:     #4f5c70;
+  --accent:    #2443b0;
   --accent-ink:#ffffff;
-  --done:      #2747b8;
+  --done:      #2443b0;
 
   /* Board tokens do not change with the theme. */
   --table:      #070a0f;
@@ -51,22 +57,25 @@
 
   --radius: 14px;
   --pill: 999px;
-  --serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --serif: "Libre Caslon Text", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --display: "Libre Caslon Display", "Libre Caslon Text", Georgia, serif;
+  --grid-line: rgba(36, 67, 176, .07);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg:      #0d0f13;
-    --bg-2:    #13161c;
-    --panel:   #161a21;
-    --line:    #2a303a;
-    --control: #6f7684;
-    --ink:     #f1eee7;
-    --ink-2:   #c3c0b8;
-    --ink-3:   #9a9790;
+    --bg:      #070b15;
+    --bg-2:    #0d1527;
+    --panel:   #101a2e;
+    --line:    #22304a;
+    --control: #62728c;
+    --ink:     #edf1f8;
+    --ink-2:   #b6c1d3;
+    --ink-3:   #8f9cb3;
     --accent:  #93abff;
-    --accent-ink: #0b0e14;
+    --accent-ink: #070b15;
     --done:    #93abff;
+    --grid-line: rgba(147, 171, 255, .05);
   }
 }
 
@@ -76,12 +85,15 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
+  /* A faint engineering grid, the kind printed on an optics lab notebook. */
   background:
-    radial-gradient(1200px 500px at 15% -10%, var(--bg-2), transparent 70%),
+    radial-gradient(1100px 520px at 12% -12%, var(--bg-2), transparent 70%),
+    linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 28px 28px,
     var(--bg);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--serif);
-  font-optical-sizing: auto;
   font-size: 17px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
@@ -92,7 +104,7 @@ body {
   position: absolute; left: 1rem; top: 1rem; z-index: 50;
   padding: .6rem 1.1rem; border-radius: var(--pill);
   background: var(--accent); color: var(--accent-ink);
-  font-weight: 600; text-decoration: none;
+  font-weight: 700; text-decoration: none;
   transform: translateY(-250%);
 }
 .skip-link:focus { transform: translateY(0); }
@@ -106,15 +118,15 @@ body {
 .eyebrow {
   margin: 0 0 .35rem;
   font-size: .8rem; letter-spacing: .14em; text-transform: uppercase;
-  color: var(--ink-3); font-weight: 500;
+  color: var(--ink-3); font-weight: 400;
 }
 .masthead h1 {
   margin: 0;
   font-size: clamp(2.6rem, 6vw, 4rem);
   line-height: 1;
-  font-weight: 640;
-  font-variation-settings: "opsz" 144;
-  letter-spacing: -0.025em;
+  font-family: var(--display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
   position: relative;
   display: inline-block;
 }
@@ -221,7 +233,7 @@ button.cell { cursor: pointer; touch-action: manipulation; }
 .result__kicker {
   margin: 0; font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: #ffe04a;
 }
-.result__title { margin: .15rem 0 .2rem; font-size: 1.45rem; font-weight: 620; letter-spacing: -0.01em; }
+.result__title { margin: .15rem 0 .2rem; font-family: var(--display); font-size: 1.6rem; font-weight: 400; }
 .result__body { margin: 0; color: #c8ccd4; font-size: .98rem; }
 .result__actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .result .btn { color: #f3f1ec; border-color: rgba(255,255,255,.35); }
@@ -247,21 +259,21 @@ button.cell { cursor: pointer; touch-action: manipulation; }
 }
 .card__kicker {
   margin: 0 0 .55rem;
-  font-size: .76rem; font-weight: 560;
+  font-size: .76rem; font-weight: 400;
   letter-spacing: .13em; text-transform: uppercase;
   color: var(--ink-3);
 }
 .level-name {
   margin: 0;
-  font-size: 1.6rem; line-height: 1.15;
-  font-weight: 620; letter-spacing: -0.015em;
-  font-variation-settings: "opsz" 72;
+  font-family: var(--display);
+  font-size: 1.75rem; line-height: 1.15;
+  font-weight: 400; letter-spacing: -0.005em;
 }
 .level-hint { margin: .45rem 0 0; color: var(--ink-2); font-size: .98rem; font-style: italic; }
 
 .budget { display: flex; align-items: center; gap: .65rem; margin-top: .9rem; }
 .budget__pips { display: inline-flex; gap: 5px; flex-wrap: wrap; }
-.budget__text { font-variant-numeric: tabular-nums lining-nums; font-weight: 560; color: var(--ink); font-size: .95rem; }
+.budget__text { font-variant-numeric: tabular-nums lining-nums; font-weight: 400; color: var(--ink); font-size: .95rem; }
 .pip {
   width: 12px; height: 12px; border-radius: 50%;
   border: 1.5px solid var(--control);
@@ -281,7 +293,7 @@ button.cell { cursor: pointer; touch-action: manipulation; }
 .controls--nav { margin-top: .6rem; padding-top: .6rem; border-top: 1px solid var(--line); }
 
 .btn {
-  font: inherit; font-size: .93rem; font-weight: 540;
+  font: inherit; font-size: .93rem; font-weight: 400;
   padding: .45rem .95rem;
   min-height: 2.35rem;
   border-radius: var(--pill);
@@ -301,11 +313,11 @@ button.cell { cursor: pointer; touch-action: manipulation; }
 .keys summary { cursor: pointer; color: var(--ink-2); }
 .keys dl { margin: .5rem 0 0; display: grid; gap: .2rem; }
 .keys dl div { display: grid; grid-template-columns: 4.5rem 1fr; gap: .5rem; }
-.keys dt { font-weight: 600; color: var(--ink); font-variant-numeric: lining-nums; }
+.keys dt { font-weight: 700; color: var(--ink); font-variant-numeric: lining-nums; }
 .keys dd { margin: 0; }
 
 .picker__group + .picker__group { margin-top: .8rem; }
-.picker__chapter { margin: 0 0 .4rem; font-size: .9rem; font-weight: 560; color: var(--ink-2); font-style: italic; }
+.picker__chapter { margin: 0 0 .4rem; font-size: .9rem; font-weight: 400; color: var(--ink-2); font-style: italic; }
 .picker { display: flex; flex-wrap: wrap; gap: .35rem; }
 .chip {
   font: inherit; font-size: .86rem; font-variant-numeric: tabular-nums lining-nums;
