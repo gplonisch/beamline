@@ -23,6 +23,18 @@ jobs:
       - name: Exhaustive solvability and exact budgets
         run: node scripts/solve.mjs
 
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # Guards a quiet failure: an asset added to index.html but not to
+      # build_zip.sh ships to a games portal as a missing file. The normal
+      # tests run against the repository, not against the packaged zip.
+      - name: Package for itch.io and verify it is self-contained
+        run: |
+          ./itch/build_zip.sh
+          python3 itch/verify_zip.py
+
   browser:
     runs-on: ubuntu-latest
     steps:
