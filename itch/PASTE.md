@@ -11,7 +11,7 @@ Create the page at **https://itch.io/game/new**.
 
 | Field | Value |
 |---|---|
-| File | `itch/beamline-web.zip` (172 KB) |
+| File | `itch/beamline-web.zip` (132 KB) |
 | Tick | **This file will be played in the browser** |
 
 The zip has `index.html` at its root and runs with no network access at all,

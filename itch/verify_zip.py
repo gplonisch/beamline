@@ -69,6 +69,18 @@ def main() -> int:
             if name.startswith(("tests/", "scripts/", "itch/", "node_modules/")) or name.endswith(".md"):
                 problems.append(f"should not be in the bundle: {name}")
 
+        # Freshness. A zip can be perfectly self-contained and still be a
+        # snapshot of a version that no longer exists: this check passed on a
+        # bundle that packaged fonts the repository had since replaced, because
+        # the archive agreed with itself. Compare every packaged file against
+        # the working tree.
+        for name in sorted(names):
+            source = ROOT / name
+            if not source.exists():
+                problems.append(f"packaged file no longer in the repo: {name}")
+            elif source.read_bytes() != z.read(name):
+                problems.append(f"packaged file is out of date: {name}")
+
         print(f"{ZIP.name}: {len(names)} files, {ZIP.stat().st_size // 1024} KB")
         print(f"  references checked: {len(wanted)}")
 
